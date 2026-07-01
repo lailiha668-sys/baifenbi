@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>百分比练习</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #0f1117; color: #e8e8e8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { font-size: 1.1rem; font-weight: 500; letter-spacing: 0.15em; color: #888; text-transform: uppercase; margin-bottom: 28px; }
+  .card { background: #1a1d27; border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 400px; margin-bottom: 20px; }
+  .mode-toggle { display: flex; background: #111318; border-radius: 10px; padding: 4px; margin-bottom: 28px; gap: 4px; }
+  .mode-btn { flex: 1; padding: 8px; border: none; border-radius: 7px; background: transparent; color: #666; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+  .mode-btn.active { background: #2563eb; color: #fff; font-weight: 600; }
+  .question-label { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .question-value { font-size: 2.8rem; font-weight: 700; color: #fff; margin-bottom: 28px; line-height: 1; letter-spacing: -0.02em; }
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { flex: 1; background: #111318; border: 2px solid #2a2d3a; border-radius: 10px; padding: 12px 16px; font-size: 1.2rem; color: #fff; outline: none; transition: border-color 0.2s; }
+  .answer-input:focus { border-color: #2563eb; }
+  .answer-input.correct { border-color: #22c55e; background: #0d1f14; }
+  .answer-input.wrong { border-color: #ef4444; background: #1f0d0d; }
+  .feedback { margin-top: 14px; font-size: 0.95rem; min-height: 22px; font-weight: 500; }
+  .feedback.correct { color: #22c55e; }
+  .feedback.wrong { color: #ef4444; }
+  .countdown-bar-wrap { margin-top: 14px; height: 3px; background: #2a2d3a; border-radius: 2px; overflow: hidden; display: none; }
+  .countdown-bar-wrap.show { display: block; }
+  .countdown-bar { height: 100%; width: 100%; border-radius: 2px; transition: width 2s linear; }
+  .countdown-bar.correct { background: #22c55e; }
+  .countdown-bar.wrong { background: #ef4444; }
+  .stats { display: flex; gap: 12px; width: 100%; max-width: 400px; margin-bottom: 20px; }
+  .stat-box { flex: 1; background: #1a1d27; border-radius: 12px; padding: 14px; text-align: center; }
+  .stat-num { font-size: 1.6rem; font-weight: 700; }
+  .stat-num.green { color: #22c55e; }
+  .stat-num.red { color: #ef4444; }
+  .stat-num.blue { color: #60a5fa; }
+  .stat-label { font-size: 0.7rem; color: #555; margin-top: 2px; letter-spacing: 0.05em; }
+  .history-card { background: #1a1d27; border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 400px; }
+  .history-title { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: #111318; }
+  .history-item .q { color: #aaa; }
+  .history-item .a { font-weight: 600; }
+  .history-item.ok .a { color: #22c55e; }
+  .history-item.fail .a { color: #ef4444; }
+  .history-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .ok .history-dot { background: #22c55e; }
+  .fail .history-dot { background: #ef4444; }
+  .clear-btn { margin-top: 12px; width: 100%; padding: 8px; background: transparent; border: 1px solid #2a2d3a; border-radius: 8px; color: #555; font-size: 0.78rem; cursor: pointer; }
+  .clear-btn:hover { color: #ef4444; border-color: #ef4444; }
+  .empty-history { color: #444; font-size: 0.85rem; text-align: center; padding: 16px 0; }
+</style>
+</head>
+<body>
+<h1>百分比 · 练习</h1>
+<div class="stats">
+  <div class="stat-box"><div class="stat-num green" id="statCorrect">0</div><div class="stat-label">答对</div></div>
+  <div class="stat-box"><div class="stat-num red" id="statWrong">0</div><div class="stat-label">答错</div></div>
+  <div class="stat-box"><div class="stat-num blue" id="statTotal">0</div><div class="stat-label">总题数</div></div>
+</div>
+<div class="card">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeA" onclick="setMode('pct')">给分数 → 写百分比</button>
+    <button class="mode-btn" id="modeB" onclick="setMode('frac')">给百分比 → 写分数</button>
+  </div>
+  <div class="question-label" id="qLabel">题目</div>
+  <div class="question-value" id="qValue">—</div>
+  <div class="input-row">
+    <input class="answer-input" id="ansInput" type="text" autocomplete="off" />
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <div class="countdown-bar-wrap" id="countdownWrap"><div class="countdown-bar" id="countdownBar"></div></div>
+</div>
+<div class="history-card">
+  <div class="history-title">学习历史</div>
+  <div class="history-list" id="historyList"><div class="empty-history">暂无记录</div></div>
+  <button class="clear-btn" onclick="clearHistory()">清空历史记录</button>
+</div>
+<script>
+const TABLE = [
+  {pct:"87.5%",frac:"1/1.14"},{pct:"85.7%",frac:"1/1.17"},{pct:"83.3%",frac:"1/1.2"},
+  {pct:"80%",frac:"1/1.25"},{pct:"75%",frac:"1/1.33"},{pct:"66.7%",frac:"1/1.5"},
+  {pct:"55%",frac:"1/1.818"},{pct:"50%",frac:"1/2"},{pct:"49%",frac:"1/2.04"},
+  {pct:"48%",frac:"1/2.08"},{pct:"47%",frac:"1/2.13"},{pct:"46%",frac:"1/2.17"},
+  {pct:"45%",frac:"1/2.22"},{pct:"43%",frac:"1/2.33"},{pct:"41%",frac:"1/2.44"},
+  {pct:"40%",frac:"1/2.5"},{pct:"39%",frac:"1/2.56"},{pct:"37%",frac:"1/2.7"},
+  {pct:"35%",frac:"1/2.86"},{pct:"33%",frac:"1/3.03"},{pct:"32%",frac:"1/3.13"},
+  {pct:"31%",frac:"1/3.23"},{pct:"30%",frac:"1/3.33"},{pct:"28.5%",frac:"1/3.5"},
+  {pct:"27%",frac:"1/3.7"},{pct:"25%",frac:"1/4"},{pct:"24%",frac:"1/4.2"},
+  {pct:"23%",frac:"1/4.3"},{pct:"22%",frac:"1/4.5"},{pct:"21%",frac:"1/4.8"},
+  {pct:"20%",frac:"1/5"},{pct:"19%",frac:"1/5.3"},{pct:"18%",frac:"1/5.6"},
+  {pct:"17%",frac:"1/5.9"},{pct:"16%",frac:"1/6.3"},{pct:"15%",frac:"1/6.7"},
+  {pct:"14%",frac:"1/7.1"},{pct:"13%",frac:"1/7.7"},{pct:"12%",frac:"1/8.3"},
+  {pct:"11%",frac:"1/9.1"},{pct:"9%",frac:"1/11.1"},{pct:"8%",frac:"1/12.5"},
+  {pct:"7%",frac:"1/14.3"},{pct:"6%",frac:"1/16.6"},{pct:"5%",frac:"1/20"},
+];
+const STORAGE_KEY="pct_practice_v1";
+let mode="pct",currentItem=null,answered=false,autoNextTimer=null;
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):{correct:0,wrong:0,history:[]}}catch{return{correct:0,wrong:0,history:[]}}}
+function saveState(s){localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
+let state=loadState();
+function setMode(m){mode=m;document.getElementById("modeA").classList.toggle("active",m==="pct");document.getElementById("modeB").classList.toggle("active",m==="frac");nextQuestion()}
+function nextQuestion(){
+  if(autoNextTimer){clearTimeout(autoNextTimer);autoNextTimer=null}
+  answered=false;
+  currentItem=TABLE[Math.floor(Math.random()*TABLE.length)];
+  const qLabel=document.getElementById("qLabel"),qValue=document.getElementById("qValue"),input=document.getElementById("ansInput"),feedback=document.getElementById("feedback"),wrap=document.getElementById("countdownWrap"),bar=document.getElementById("countdownBar");
+  if(mode==="pct"){qLabel.textContent="这个分数对应的百分比是？";qValue.textContent=currentItem.frac;input.value="%"}
+  else{qLabel.textContent="这个百分比对应的分数是？";qValue.textContent=currentItem.pct;input.value="1/"}
+  input.placeholder="";input.className="answer-input";input.disabled=false;
+  feedback.textContent="";feedback.className="feedback";
+  wrap.classList.remove("show");bar.style.transition="none";bar.style.width="100%";
+  input.focus();const p=mode==="pct"?0:2;input.setSelectionRange(p,p);
+}
+function normalize(s){return s.trim().toLowerCase().replace(/\s/g,"").replace("％","%")}
+function checkAnswer(){
+  if(answered)return;
+  const input=document.getElementById("ansInput"),feedback=document.getElementById("feedback"),wrap=document.getElementById("countdownWrap"),bar=document.getElementById("countdownBar");
+  const raw=input.value;if(!raw.trim())return;
+  const correctAns=mode==="pct"?currentItem.pct:currentItem.frac;
+  const userAns=normalize(raw),correctNorm=normalize(correctAns);
+  let isCorrect=false;
+  if(mode==="pct"){isCorrect=userAns.replace("%","")=== correctNorm.replace("%","")||userAns===correctNorm}
+  else{isCorrect=userAns===correctNorm}
+  answered=true;input.disabled=true;
+  state=loadState();
+  if(isCorrect){input.className="answer-input correct";feedback.textContent="✓ 正确！";feedback.className="feedback correct";bar.className="countdown-bar correct";state.correct++}
+  else{input.className="answer-input wrong";feedback.textContent="✗ 答案是 "+correctAns;feedback.className="feedback wrong";bar.className="countdown-bar wrong";state.wrong++}
+  state.history.unshift({mode,question:mode==="pct"?currentItem.frac:currentItem.pct,correct:correctAns,userAns:raw,ok:isCorrect,time:Date.now()});
+  if(state.history.length>100)state.history=state.history.slice(0,100);
+  saveState(state);renderStats();renderHistory();
+  wrap.classList.add("show");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition="width 2s linear";bar.style.width="0%"}));
+  autoNextTimer=setTimeout(nextQuestion,2000);
+}
+function renderStats(){const s=loadState();document.getElementById("statCorrect").textContent=s.correct;document.getElementById("statWrong").textContent=s.wrong;document.getElementById("statTotal").textContent=s.correct+s.wrong}
+function renderHistory(){
+  const s=loadState(),list=document.getElementById("historyList");
+  if(!s.history.length){list.innerHTML='<div class="empty-history">暂无记录</div>';return}
+  list.innerHTML=s.history.slice(0,50).map(h=>`<div class="history-item ${h.ok?'ok':'fail'}"><span class="q">${h.question}</span><span class="a">${h.ok?h.correct:h.userAns+' → '+h.correct}</span><div class="history-dot"></div></div>`).join("");
+}
+function clearHistory(){if(!confirm("确定清空所有历史记录和统计？"))return;localStorage.removeItem(STORAGE_KEY);state={correct:0,wrong:0,history:[]};renderStats();renderHistory()}
+document.getElementById("ansInput").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer()});
+renderStats();renderHistory();nextQuestion();
+</script>
+</body>
+</html>
