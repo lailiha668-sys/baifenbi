@@ -133,7 +133,7 @@ function checkAnswer(){
   if(state.history.length>100)state.history=state.history.slice(0,100);
   saveState(state);renderStats();renderHistory();
   wrap.classList.add("show");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition="width 2s linear";bar.style.width="0%"}));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition="width 1.5s linear";bar.style.width="0%"}));
   autoNextTimer=setTimeout(nextQuestion,2000);
 }
 function renderStats(){const s=loadState();document.getElementById("statCorrect").textContent=s.correct;document.getElementById("statWrong").textContent=s.wrong;document.getElementById("statTotal").textContent=s.correct+s.wrong}
